@@ -1,0 +1,1 @@
+# Consistant-Core-Pattern

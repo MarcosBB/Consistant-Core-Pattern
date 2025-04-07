@@ -27,7 +27,7 @@ public class TCP implements ComunicationProtocol {
     }
 
     @Override
-    public void send(String message, int port) {
+    public void send(int port, String message) {
         try (Socket socket = new Socket("localhost", port);
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
 

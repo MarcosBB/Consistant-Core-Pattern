@@ -32,7 +32,7 @@ public class UDP implements ComunicationProtocol {
     }
 
     @Override
-    public void send(String message, int port) {
+    public void send(int port, String message) {
         try (DatagramSocket socket = new DatagramSocket()) {
             byte[] buffer = message.getBytes();
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName("localhost"), port);

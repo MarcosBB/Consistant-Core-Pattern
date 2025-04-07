@@ -3,6 +3,7 @@ package utils;
 import protocols.UDP;
 import protocols.TCP;
 import protocols.ComunicationProtocol;
+import protocols.HTTP;
 
 public class ProtocolUtils {
 
@@ -16,8 +17,7 @@ public class ProtocolUtils {
                 return new TCP();
             case "HTTP":
                 System.out.println("Using HTTP protocol");
-                // Implement HTTP protocol handling here
-                return null; // Placeholder for HTTP implementation
+                return new HTTP();
             default:
                 System.out.println("Using default protocol: UDP");
                 return new UDP();

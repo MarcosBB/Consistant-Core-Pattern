@@ -12,6 +12,5 @@ public class Client {
         int port = Integer.parseInt(args[1]);
 
         protocol.send(port, "Hello, Server!");
-        System.out.println("Message sent to server.");
     }
 }

@@ -43,7 +43,7 @@ public class HeartBeat {
                     serverList.add(serverInfo);
                 } else {
                     serverList.forEach(server -> {
-                        if (server.get("port").equals(port)) {
+                        if (server.get("port").equals(serverPort)) {
                             server.put("lastBeat", System.currentTimeMillis());
                         }
                     });

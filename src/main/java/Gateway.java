@@ -18,14 +18,18 @@ public class Gateway {
         heartBeat.listen(port);
         while (true) {
             heartBeat.getServerList().forEach(server -> {
-                System.out.println("Server " + server.get("port") + " is alive.");
+                long lastBeat = (long) server.get("lastBeat");
+                double secondsSinceLastBeat = (System.currentTimeMillis() - lastBeat) / 1000.0;
+                System.out.println(
+                        "Server " + server.get("port") + " is alive - last heartbeat was " + secondsSinceLastBeat
+                                + " seconds ago");
             });
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            // apaga o terminal
+
             System.out.print("\033[H\033[2J");
             System.out.flush();
 

@@ -13,7 +13,7 @@ public class HTTP implements ComunicationProtocol {
     @Override
     public void listen(int port, Consumer<String> processPayload) {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
-            System.out.println("HTTP server listening on port " + port);
+            System.out.println("Listening on port " + port);
 
             while (true) {
                 Socket clientSocket = serverSocket.accept();

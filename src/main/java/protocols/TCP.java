@@ -14,7 +14,7 @@ public class TCP implements ComunicationProtocol {
         try (
                 ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
                 ServerSocket server = new ServerSocket(port, 1000)) {
-
+            System.out.println("Listening on port " + port);
             while (true) {
                 Socket conexao = server.accept();
                 BufferedReader input = new BufferedReader(new InputStreamReader(conexao.getInputStream()));

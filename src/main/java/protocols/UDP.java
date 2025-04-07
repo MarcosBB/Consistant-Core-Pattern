@@ -11,21 +11,29 @@ public class UDP implements ComunicationProtocol {
 
     @Override
     public void listen(int port, Consumer<String> processPayload) {
-        try (
-                ExecutorService executor = Executors.newCachedThreadPool();
-                DatagramSocket socket = new DatagramSocket(port)) {
+        ExecutorService executor = Executors.newCachedThreadPool();
+        try {
+            DatagramSocket socket = new DatagramSocket(port);
+            System.out.println("Listening on port " + port);
 
-            System.out.println("UDP Server listening on port " + port);
-            while (true) {
-                byte[] buffer = new byte[1024];
-                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-                socket.receive(packet);
+            executor.execute(() -> {
+                try {
+                    while (true) {
+                        byte[] buffer = new byte[1024];
+                        DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                        socket.receive(packet);
 
-                executor.execute(() -> {
-                    String message = new String(packet.getData(), 0, packet.getLength());
-                    processPayload.accept(message);
-                });
-            }
+                        executor.execute(() -> {
+                            String message = new String(packet.getData(), 0, packet.getLength());
+                            processPayload.accept(message);
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    socket.close();
+                }
+            });
         } catch (Exception e) {
             e.printStackTrace();
         }

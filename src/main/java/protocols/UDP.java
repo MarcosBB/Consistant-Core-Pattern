@@ -28,7 +28,15 @@ public class UDP implements ComunicationProtocol {
                             processPayload.accept(message);
                         });
 
-                        this.send(packet.getPort(), "Process done sucessfully");
+                        String responseMessage = "Process done successfully";
+                        byte[] responseBuffer = responseMessage.getBytes();
+                        DatagramPacket responsePacket = new DatagramPacket(
+                                responseBuffer,
+                                responseBuffer.length,
+                                packet.getAddress(),
+                                packet.getPort());
+                        socket.send(responsePacket);
+
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -45,9 +53,12 @@ public class UDP implements ComunicationProtocol {
     public void send(int port, String message) {
         try (DatagramSocket socket = new DatagramSocket()) {
             byte[] buffer = message.getBytes();
-            DatagramPacket packet = new DatagramPacket(buffer, buffer.length, InetAddress.getByName("localhost"), port);
+            DatagramPacket packet = new DatagramPacket(
+                    buffer,
+                    buffer.length,
+                    InetAddress.getByName("localhost"),
+                    port);
             socket.send(packet);
-            System.out.println("UDP message sent to port " + port);
         } catch (Exception e) {
             e.printStackTrace();
         }

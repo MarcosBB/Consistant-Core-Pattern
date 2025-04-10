@@ -11,16 +11,32 @@ public class TCP implements ComunicationProtocol {
 
     @Override
     public void listen(int port, Consumer<String> processPayload) {
-        try (
-                ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
-                ServerSocket server = new ServerSocket(port, 1000)) {
-            System.out.println("Listening on port " + port);
-            while (true) {
-                Socket conexao = server.accept();
-                BufferedReader input = new BufferedReader(new InputStreamReader(conexao.getInputStream()));
-                String message = input.readLine();
-                executor.execute(() -> processPayload.accept(message));
-            }
+        ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
+        try {
+            ServerSocket socket = new ServerSocket(port, 1000);
+            executor.execute(() -> {
+                try {
+                    while (true) {
+                        Socket conexao = socket.accept();
+                        BufferedReader input = new BufferedReader(new InputStreamReader(conexao.getInputStream()));
+                        String message = input.readLine();
+                        processPayload.accept(message);
+                        // Send a response back to the client
+                        PrintWriter output = new PrintWriter(conexao.getOutputStream(), true);
+                        output.println("Process done successfully");
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            });
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -32,7 +48,6 @@ public class TCP implements ComunicationProtocol {
                 PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
 
             out.println(message);
-            System.out.println("TCP message sent to port " + port);
         } catch (IOException e) {
             e.printStackTrace();
         }

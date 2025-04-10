@@ -5,12 +5,12 @@ import java.net.DatagramSocket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.net.InetAddress;
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class UDP implements ComunicationProtocol {
 
     @Override
-    public void listen(int port, Consumer<String> processPayload) {
+    public void listen(int port, Function<String, Boolean> processPayload) {
         ExecutorService executor = Executors.newCachedThreadPool();
         try {
             DatagramSocket socket = new DatagramSocket(port);
@@ -24,19 +24,24 @@ public class UDP implements ComunicationProtocol {
                         socket.receive(packet);
 
                         executor.execute(() -> {
-                            String message = new String(packet.getData(), 0, packet.getLength());
-                            processPayload.accept(message);
+                            try {
+                                String message = new String(packet.getData(), 0, packet.getLength());
+                                boolean processed = processPayload.apply(message);
+
+                                if (processed) {
+                                    String responseMessage = "Process done successfully";
+                                    byte[] responseBuffer = responseMessage.getBytes();
+                                    DatagramPacket responsePacket = new DatagramPacket(
+                                            responseBuffer,
+                                            responseBuffer.length,
+                                            packet.getAddress(),
+                                            packet.getPort());
+                                    socket.send(responsePacket);
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
                         });
-
-                        String responseMessage = "Process done successfully";
-                        byte[] responseBuffer = responseMessage.getBytes();
-                        DatagramPacket responsePacket = new DatagramPacket(
-                                responseBuffer,
-                                responseBuffer.length,
-                                packet.getAddress(),
-                                packet.getPort());
-                        socket.send(responsePacket);
-
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -50,7 +55,7 @@ public class UDP implements ComunicationProtocol {
     }
 
     @Override
-    public void send(int port, String message) {
+    public boolean send(int port, String message) {
         try (DatagramSocket socket = new DatagramSocket()) {
             byte[] buffer = message.getBytes();
             DatagramPacket packet = new DatagramPacket(
@@ -59,8 +64,19 @@ public class UDP implements ComunicationProtocol {
                     InetAddress.getByName("localhost"),
                     port);
             socket.send(packet);
+
+            // Wait for a response
+            byte[] responseBuffer = new byte[1024];
+            DatagramPacket responsePacket = new DatagramPacket(responseBuffer, responseBuffer.length);
+            socket.receive(responsePacket);
+
+            String responseMessage = new String(responsePacket.getData(), 0, responsePacket.getLength());
+            if ("Process done successfully".equals(responseMessage)) {
+                return true;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return false;
     }
 }

@@ -22,6 +22,7 @@ public class HeartBeat {
     public void startSendingHeartBeats(int senderPort, int receiverPort) {
         new Thread(() -> {
             while (true) {
+                System.out.println("Sending heartbeat from " + senderPort + " to " + receiverPort);
                 sendHeartBeat(senderPort, receiverPort);
                 try {
                     Thread.sleep(1000);
@@ -48,7 +49,9 @@ public class HeartBeat {
                         }
                     });
                 }
+                return true;
             }
+            return false;
         });
         this.startTimeoutMonitoring();
     }

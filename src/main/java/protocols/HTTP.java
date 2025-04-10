@@ -2,7 +2,7 @@ package protocols;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Consumer;
+import java.util.function.Function;
 import java.net.ServerSocket;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -11,7 +11,7 @@ import java.net.Socket;
 public class HTTP implements ComunicationProtocol {
 
     @Override
-    public void listen(int port, Consumer<String> processPayload) {
+    public void listen(int port, Function<String, Boolean> processPayload) {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.println("Listening on port " + port);
 
@@ -26,7 +26,7 @@ public class HTTP implements ComunicationProtocol {
 
                         if (request.contains("\r\n\r\n")) {
                             String body = getTextBody(request);
-                            processPayload.accept(body);
+                            processPayload.apply(body);
                             respond(clientSocket, 200, getStatusMessage(200));
                         } else {
                             respond(clientSocket, 400, getStatusMessage(400));
@@ -43,7 +43,7 @@ public class HTTP implements ComunicationProtocol {
     }
 
     @Override
-    public void send(int port, String message) {
+    public boolean send(int port, String message) {
         try (Socket socket = new Socket("localhost", port);
                 OutputStream output = socket.getOutputStream();
                 PrintWriter writer = new PrintWriter(output, true)) {
@@ -73,6 +73,7 @@ public class HTTP implements ComunicationProtocol {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return true;
     }
 
     public void respond(Socket clientSocket, int statusCode, String message) {

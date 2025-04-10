@@ -1,10 +1,10 @@
 package protocols;
 
-import java.util.function.Consumer;
+import java.util.function.Function;
 
 public interface ComunicationProtocol {
-    void listen(int port, Consumer<String> processPayload);
+    void listen(int port, Function<String, Boolean> processPayload);
 
-    void send(int port, String message);
+    boolean send(int port, String message);
 
 }

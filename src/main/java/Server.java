@@ -16,6 +16,7 @@ public class Server {
 
         protocol.listen(port, message -> {
             System.out.println("Received message: " + message);
+            return true;
         });
 
         HeartBeat heartBeat = new HeartBeat(protocol);

@@ -21,11 +21,25 @@ public class Gateway {
 
         protocol.listen(3500, message -> {
             requestsLog.add("Request received: " + message);
-            heartBeat.getServerList().forEach(server -> {
+
+            if (heartBeat.getServerList().isEmpty()) {
+                requestsLog.add("ERROR: No servers available");
+                return false;
+            }
+
+            boolean allSuccess = true;
+            for (Map<String, Object> server : heartBeat.getServerList()) {
                 int serverPort = (int) server.get("port");
-                protocol.send(serverPort, message);
-                requestsLog.add("Forwarded to servers " + serverPort + ": " + message);
-            });
+                requestsLog.add("Forwarding to server " + serverPort + ": " + message);
+                boolean success = protocol.send(serverPort, message);
+                if (success) {
+                    requestsLog.add("SUCCESS: Server " + serverPort + " responded successfully");
+                } else {
+                    requestsLog.add("ERROR: Server " + serverPort + " did not respond");
+                    allSuccess = false;
+                }
+            }
+            return allSuccess;
         });
 
         heartBeat.listen(port);

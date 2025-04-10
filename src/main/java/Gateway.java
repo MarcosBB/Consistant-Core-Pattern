@@ -2,9 +2,10 @@ import protocols.ComunicationProtocol;
 import utils.ProtocolUtils;
 import protocols.HeartBeat;
 import utils.Log;
-
 import java.util.List;
 import java.util.Map;
+import utils.ReplicatedLog;
+import java.util.UUID;
 
 public class Gateway {
 
@@ -19,40 +20,65 @@ public class Gateway {
         HeartBeat heartBeat = new HeartBeat(protocol);
         Log requestsLog = new Log();
 
+        ReplicatedLog replicatedLog = new ReplicatedLog();
+
         protocol.listen(3500, message -> {
+            // if (message.startsWith("SYNC_REQUEST")) {
+            // String[] parts = message.split(":");
+            // int serverPort = Integer.parseInt(parts[1]);
+            // requestsLog.add("SYNC_REQUEST: " + serverPort);
+            // // protocol.send(serverPort, "SYNC_REQUEST:" + replicatedLog.getLog(0));
+            // return true;
+            // }
+
+            String id = UUID.randomUUID().toString();
+            replicatedLog.addEntry(id, message);
             requestsLog.add("Request received: " + message);
 
-            if (heartBeat.getServerList().isEmpty()) {
+            List<Map<String, Object>> servers = heartBeat.getServerList();
+            if (servers.isEmpty()) {
                 requestsLog.add("ERROR: No servers available");
                 return false;
             }
 
-            boolean allSuccess = true;
-            for (Map<String, Object> server : heartBeat.getServerList()) {
+            int successCount = 0;
+            for (Map<String, Object> server : servers) {
                 int serverPort = (int) server.get("port");
-                requestsLog.add("Forwarding to server " + serverPort + ": " + message);
-                boolean success = protocol.send(serverPort, message);
-                if (success) {
-                    requestsLog.add("SUCCESS: Server " + serverPort + " responded successfully");
-                } else {
-                    requestsLog.add("ERROR: Server " + serverPort + " did not respond");
-                    allSuccess = false;
-                }
+                boolean success = protocol.send(serverPort, id + ":PENDING:" + message);
+                if (success)
+                    successCount++;
             }
-            return allSuccess;
+
+            int quorum = (servers.size() / 2) + 1;
+            if (successCount >= quorum) {
+                replicatedLog.commitEntry(id);
+                for (Map<String, Object> server : servers) {
+                    int serverPort = (int) server.get("port");
+                    protocol.send(serverPort, "COMMIT:" + id);
+                }
+                requestsLog.add("COMMIT: " + message);
+                return true;
+            } else {
+                requestsLog.add("FAIL: quorum not reached for " + message);
+                return false;
+            }
         });
 
         heartBeat.listen(port);
-
         while (true) {
-            displayInformation(heartBeat.getServerList(), requestsLog.getLog(10));
+            displayInformation(
+                    heartBeat.getServerList(),
+                    requestsLog.getLog(10),
+                    replicatedLog.getLog(10));
         }
     }
 
     private static void displayInformation(
             List<Map<String, Object>> serversUp,
-            String log) {
+            String requestsLog,
+            String replicatedLog) {
 
+        System.out.println("\n\n----------------------");
         System.out.println("Servers Up:");
         serversUp.forEach(server -> {
             long lastBeat = (long) server.get("lastBeat");
@@ -62,7 +88,11 @@ public class Gateway {
 
         System.out.println("\n\n----------------------");
         System.out.println("Requests log:");
-        System.out.println(log);
+        System.out.println(requestsLog);
+
+        System.out.println("\n\n----------------------");
+        System.out.println("Replicated Log:");
+        System.out.println(replicatedLog);
 
         try {
             Thread.sleep(1000);

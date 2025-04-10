@@ -57,6 +57,7 @@ public class UDP implements ComunicationProtocol {
     @Override
     public boolean send(int port, String message) {
         try (DatagramSocket socket = new DatagramSocket()) {
+            socket.setSoTimeout(1000); // Set timeout to 1 second
             byte[] buffer = message.getBytes();
             DatagramPacket packet = new DatagramPacket(
                     buffer,
@@ -74,6 +75,8 @@ public class UDP implements ComunicationProtocol {
             if ("Process done successfully".equals(responseMessage)) {
                 return true;
             }
+        } catch (java.net.SocketTimeoutException e) {
+            System.out.println("Response timed out.");
         } catch (Exception e) {
             e.printStackTrace();
         }

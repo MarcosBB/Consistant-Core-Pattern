@@ -27,6 +27,8 @@ public class UDP implements ComunicationProtocol {
                             String message = new String(packet.getData(), 0, packet.getLength());
                             processPayload.accept(message);
                         });
+
+                        this.send(packet.getPort(), "Process done sucessfully");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

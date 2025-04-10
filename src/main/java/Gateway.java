@@ -1,10 +1,10 @@
 import protocols.ComunicationProtocol;
 import utils.ProtocolUtils;
 import protocols.HeartBeat;
+import utils.Log;
 
 import java.util.List;
 import java.util.Map;
-import java.util.ArrayList;
 
 public class Gateway {
 
@@ -17,7 +17,7 @@ public class Gateway {
         ComunicationProtocol protocol = ProtocolUtils.setProtocol(args[0]);
         int port = Integer.parseInt(args[1]);
         HeartBeat heartBeat = new HeartBeat(protocol);
-        List<String> requestsLog = new ArrayList<>();
+        Log requestsLog = new Log();
 
         protocol.listen(3500, message -> {
             requestsLog.add("Request received: " + message);
@@ -29,14 +29,15 @@ public class Gateway {
         });
 
         heartBeat.listen(port);
+
         while (true) {
-            displayInformation(heartBeat.getServerList(), requestsLog);
+            displayInformation(heartBeat.getServerList(), requestsLog.getLog(10));
         }
     }
 
     private static void displayInformation(
             List<Map<String, Object>> serversUp,
-            List<String> requestsLog) {
+            String log) {
 
         System.out.println("Servers Up:");
         serversUp.forEach(server -> {
@@ -47,9 +48,7 @@ public class Gateway {
 
         System.out.println("\n\n----------------------");
         System.out.println("Requests log:");
-        requestsLog.forEach(request -> {
-            System.out.println(request);
-        });
+        System.out.println(log);
 
         try {
             Thread.sleep(1000);

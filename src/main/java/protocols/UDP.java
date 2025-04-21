@@ -70,11 +70,9 @@ public class UDP implements ComunicationProtocol {
             byte[] responseBuffer = new byte[1024];
             DatagramPacket responsePacket = new DatagramPacket(responseBuffer, responseBuffer.length);
             socket.receive(responsePacket);
-
             String responseMessage = new String(responsePacket.getData(), 0, responsePacket.getLength());
-            if ("Process done successfully".equals(responseMessage)) {
-                return true;
-            }
+            return responseMessage.equals("Process done successfully");
+
         } catch (java.net.SocketTimeoutException e) {
             System.out.println("Response timed out.");
         } catch (Exception e) {

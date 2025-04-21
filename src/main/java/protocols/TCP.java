@@ -17,13 +17,18 @@ public class TCP implements ComunicationProtocol {
             executor.execute(() -> {
                 try {
                     while (true) {
-                        Socket conexao = socket.accept();
-                        BufferedReader input = new BufferedReader(new InputStreamReader(conexao.getInputStream()));
+                        Socket connection = socket.accept();
+                        BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                         String message = input.readLine();
-                        processPayload.apply(message);
+                        boolean processed = processPayload.apply(message);
+
                         // Send a response back to the client
-                        PrintWriter output = new PrintWriter(conexao.getOutputStream(), true);
-                        output.println("Process done successfully");
+                        PrintWriter output = new PrintWriter(connection.getOutputStream(), true);
+                        if (processed) {
+                            output.println("Process done successfully");
+                        } else {
+                            output.println("Process failed");
+                        }
                     }
 
                 } catch (IOException e) {

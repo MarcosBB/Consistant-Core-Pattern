@@ -84,4 +84,9 @@ public class UDP implements ComunicationProtocol {
         }
         return false;
     }
+
+    @Override
+    public String getName() {
+        return "UDP";
+    }
 }

@@ -3,6 +3,9 @@ package protocols;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+
+import utils.MessageUtils;
+
 import java.util.HashMap;
 
 public class HeartBeat {
@@ -36,6 +39,7 @@ public class HeartBeat {
 
     public void listen(int port) {
         protocol.listen(port, message -> {
+            message = MessageUtils.extract(message, protocol.getName());
             if (message.startsWith("heartbeat:")) {
                 int serverPort = Integer.parseInt(message.split(":")[1]);
                 if (!checkServerStatus(serverPort)) {

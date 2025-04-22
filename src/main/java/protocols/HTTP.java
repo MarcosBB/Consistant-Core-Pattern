@@ -32,6 +32,11 @@ public class HTTP implements ComunicationProtocol {
 
     }
 
+    @Override
+    public String getName() {
+        return "HTTP";
+    }
+
     private String formatMessage(String method, int port, String message) {
         return method.toUpperCase() + " / HTTP/1.1\r\n" +
                 "Host: localhost:" + port + "\r\n" +

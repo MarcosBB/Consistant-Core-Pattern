@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import utils.ReplicatedLog;
 import java.util.UUID;
+import utils.MessageUtils;
 
 public class Gateway {
 
@@ -25,6 +26,7 @@ public class Gateway {
         ReplicatedLog replicatedLog = new ReplicatedLog();
 
         protocol.listen(3500, message -> {
+            message = MessageUtils.extract(message, args[0]);
             // if (message.startsWith("SYNC_REQUEST")) {
             // String[] parts = message.split(":");
             // int serverPort = Integer.parseInt(parts[1]);

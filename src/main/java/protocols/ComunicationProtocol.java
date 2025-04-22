@@ -11,4 +11,6 @@ public interface ComunicationProtocol {
 
     boolean send(int port, String message, String expectedResponseMessage);
 
+    String getName();
+
 }

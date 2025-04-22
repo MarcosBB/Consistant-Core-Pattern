@@ -1,5 +1,6 @@
 import protocols.ComunicationProtocol;
 import protocols.HeartBeat;
+import utils.MessageUtils;
 import utils.ProtocolUtils;
 import utils.ReplicatedLog;
 import java.util.HashMap;
@@ -23,6 +24,8 @@ public class Server {
         HeartBeat heartBeat = new HeartBeat(protocol);
 
         protocol.listen(port, message -> {
+            message = MessageUtils.extract(message, args[0]);
+
             if (message.startsWith("COMMIT:")) {
                 String id = message.replace("COMMIT:", "");
                 replicatedLog.commitEntry(id);

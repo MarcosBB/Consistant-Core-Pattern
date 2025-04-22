@@ -33,7 +33,7 @@ public class Gateway {
 
             String id = UUID.randomUUID().toString();
             replicatedLog.addEntry(id, message);
-            requestsLog.add("Request received: " + message);
+            requestsLog.add("PENDING: " + message);
 
             List<Map<String, Object>> servers = heartBeat.getServerList();
             if (servers.isEmpty()) {
@@ -49,8 +49,7 @@ public class Gateway {
                     successCount++;
             }
 
-            int quorum = (servers.size() / 2) + 1;
-            if (successCount >= quorum) {
+            if (successCount >= servers.size()) {
                 replicatedLog.commitEntry(id);
                 for (Map<String, Object> server : servers) {
                     int serverPort = (int) server.get("port");

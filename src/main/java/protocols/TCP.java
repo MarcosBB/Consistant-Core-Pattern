@@ -49,13 +49,20 @@ public class TCP implements ComunicationProtocol {
 
     @Override
     public boolean send(int port, String message) {
-        try (Socket socket = new Socket("localhost", port);
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
-
+        try (Socket socket = new Socket("localhost", port)) {
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             out.println(message);
+
+            // Wait for a response
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String response = in.readLine();
+            return response.equals("Process done successfully");
+
+        } catch (java.net.SocketTimeoutException e) {
+            System.out.println("Response timed out.");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return true;
+        return false;
     }
 }

@@ -23,25 +23,36 @@ public class TCP implements ComunicationProtocol {
                 try {
                     while (true) {
                         Socket connection = socket.accept();
-                        BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                        String message = buildMessage(input);
-                        boolean processed = processPayload.apply(message);
+                        try (BufferedReader input = new BufferedReader(
+                                new InputStreamReader(connection.getInputStream()));
+                                PrintWriter output = new PrintWriter(connection.getOutputStream())) {
 
-                        // Send a response back to the client
-                        PrintWriter output = new PrintWriter(connection.getOutputStream());
-                        if (processed) {
-                            output.println(successResponseMessage);
-                        } else {
-                            output.println(errorResponseMessage);
+                            String message = buildMessage(input);
+                            boolean processed = processPayload.apply(message);
+
+                            // Send a response back to the client
+                            if (processed) {
+                                output.println(successResponseMessage);
+                            } else {
+                                output.println(errorResponseMessage);
+                            }
+                            output.println("--END--");
+                            output.flush();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } finally {
+                            connection.close();
                         }
-                        output.println("--END--");
-                        output.flush();
                     }
-
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
-
             });
         } catch (IOException e) {
             e.printStackTrace();

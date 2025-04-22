@@ -10,7 +10,8 @@ import java.util.function.Function;
 public class UDP implements ComunicationProtocol {
 
     @Override
-    public void listen(int port, Function<String, Boolean> processPayload) {
+    public void listen(int port, Function<String, Boolean> processPayload, String successResponseMessage,
+            String errorResponseMessage) {
         ExecutorService executor = Executors.newCachedThreadPool();
         try {
             DatagramSocket socket = new DatagramSocket(port);
@@ -28,16 +29,19 @@ public class UDP implements ComunicationProtocol {
                                 String message = new String(packet.getData(), 0, packet.getLength());
                                 boolean processed = processPayload.apply(message);
 
+                                String responseMessage;
                                 if (processed) {
-                                    String responseMessage = "Process done successfully";
-                                    byte[] responseBuffer = responseMessage.getBytes();
-                                    DatagramPacket responsePacket = new DatagramPacket(
-                                            responseBuffer,
-                                            responseBuffer.length,
-                                            packet.getAddress(),
-                                            packet.getPort());
-                                    socket.send(responsePacket);
+                                    responseMessage = successResponseMessage;
+                                } else {
+                                    responseMessage = errorResponseMessage;
                                 }
+                                byte[] responseBuffer = responseMessage.getBytes();
+                                DatagramPacket responsePacket = new DatagramPacket(
+                                        responseBuffer,
+                                        responseBuffer.length,
+                                        packet.getAddress(),
+                                        packet.getPort());
+                                socket.send(responsePacket);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -55,7 +59,7 @@ public class UDP implements ComunicationProtocol {
     }
 
     @Override
-    public boolean send(int port, String message) {
+    public boolean send(int port, String message, String expectedResponseMessage) {
         try (DatagramSocket socket = new DatagramSocket()) {
             socket.setSoTimeout(1000); // Set timeout to 1 second
             byte[] buffer = message.getBytes();
@@ -71,7 +75,7 @@ public class UDP implements ComunicationProtocol {
             DatagramPacket responsePacket = new DatagramPacket(responseBuffer, responseBuffer.length);
             socket.receive(responsePacket);
             String responseMessage = new String(responsePacket.getData(), 0, responsePacket.getLength());
-            return responseMessage.equals("Process done successfully");
+            return responseMessage.equals(expectedResponseMessage);
 
         } catch (java.net.SocketTimeoutException e) {
             System.out.println("Response timed out.");

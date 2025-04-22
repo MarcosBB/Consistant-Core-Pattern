@@ -8,6 +8,8 @@ import java.util.HashMap;
 public class HeartBeat {
     private ComunicationProtocol protocol;
     private List<Map<String, Object>> serverList;
+    private final String SUCCESS_RESPONSE_MESSAGE = "Heartbeat received";
+    private final String ERROR_RESPONSE_MESSAGE = "Heartbeat failed";
 
     public HeartBeat(ComunicationProtocol protocol) {
         this.protocol = protocol;
@@ -16,7 +18,7 @@ public class HeartBeat {
 
     private void sendHeartBeat(int senderPort, int receiverPort) {
         String message = "heartbeat:" + senderPort;
-        protocol.send(receiverPort, message);
+        protocol.send(receiverPort, message, SUCCESS_RESPONSE_MESSAGE);
     }
 
     public void startSendingHeartBeats(int senderPort, int receiverPort) {
@@ -51,7 +53,7 @@ public class HeartBeat {
                 return true;
             }
             return false;
-        });
+        }, SUCCESS_RESPONSE_MESSAGE, ERROR_RESPONSE_MESSAGE);
         this.startTimeoutMonitoring();
     }
 

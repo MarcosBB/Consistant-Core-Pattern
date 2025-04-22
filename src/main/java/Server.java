@@ -8,6 +8,9 @@ import java.util.Map;
 public class Server {
 
     public static void main(String[] args) {
+        String expectedResponseMessage = "Process done successfully";
+        String errorResponseMessage = "Process failed";
+
         if (args.length != 3) {
             System.out.println("Please specify a protocol (UDP, TCP, HTTP), server port and gateway port.");
             return;
@@ -17,6 +20,7 @@ public class Server {
         int port = Integer.parseInt(args[1]);
         int gatewayPort = Integer.parseInt(args[2]);
         ReplicatedLog replicatedLog = new ReplicatedLog();
+        HeartBeat heartBeat = new HeartBeat(protocol);
 
         protocol.listen(port, message -> {
             if (message.startsWith("COMMIT:")) {
@@ -42,9 +46,8 @@ public class Server {
             entry.put("message", parts[2]);
             replicatedLog.getEntries().add(entry);
             return true;
-        });
+        }, expectedResponseMessage, errorResponseMessage);
 
-        HeartBeat heartBeat = new HeartBeat(protocol);
         heartBeat.startSendingHeartBeats(port, gatewayPort);
 
         // protocol.send(gatewayPort, "SYNC_REQUEST:" + port);

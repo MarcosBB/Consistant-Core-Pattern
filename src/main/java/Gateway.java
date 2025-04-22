@@ -10,6 +10,9 @@ import java.util.UUID;
 public class Gateway {
 
     public static void main(String[] args) {
+        String expectedResponseMessage = "Process done successfully";
+        String errorResponseMessage = "Process failed";
+
         if (args.length != 2) {
             System.out.println("Please specify a protocol (UDP, TCP, HTTP) and a port.");
             return;
@@ -19,7 +22,6 @@ public class Gateway {
         int port = Integer.parseInt(args[1]);
         HeartBeat heartBeat = new HeartBeat(protocol);
         Log requestsLog = new Log();
-
         ReplicatedLog replicatedLog = new ReplicatedLog();
 
         protocol.listen(3500, message -> {
@@ -44,7 +46,10 @@ public class Gateway {
             int successCount = 0;
             for (Map<String, Object> server : servers) {
                 int serverPort = (int) server.get("port");
-                boolean success = protocol.send(serverPort, id + ":PENDING:" + message);
+                boolean success = protocol.send(
+                        serverPort,
+                        id + ":PENDING:" + message,
+                        expectedResponseMessage);
                 if (success)
                     successCount++;
             }
@@ -53,7 +58,7 @@ public class Gateway {
                 replicatedLog.commitEntry(id);
                 for (Map<String, Object> server : servers) {
                     int serverPort = (int) server.get("port");
-                    protocol.send(serverPort, "COMMIT:" + id);
+                    protocol.send(serverPort, "COMMIT:" + id, expectedResponseMessage);
                 }
                 requestsLog.add("COMMIT: " + message);
                 return true;
@@ -61,7 +66,7 @@ public class Gateway {
                 requestsLog.add("FAIL: quorum not reached for " + message);
                 return false;
             }
-        });
+        }, expectedResponseMessage, errorResponseMessage);
 
         heartBeat.listen(port);
         while (true) {

@@ -10,7 +10,11 @@ import java.util.function.Function;
 public class TCP implements ComunicationProtocol {
 
     @Override
-    public void listen(int port, Function<String, Boolean> processPayload) {
+    public void listen(
+            int port,
+            Function<String, Boolean> processPayload,
+            String successResponseMessage,
+            String errorResponseMessage) {
         ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
         try {
             ServerSocket socket = new ServerSocket(port, 1000);
@@ -25,9 +29,9 @@ public class TCP implements ComunicationProtocol {
                         // Send a response back to the client
                         PrintWriter output = new PrintWriter(connection.getOutputStream(), true);
                         if (processed) {
-                            output.println("Process done successfully");
+                            output.println(successResponseMessage);
                         } else {
-                            output.println("Process failed");
+                            output.println(errorResponseMessage);
                         }
                     }
 
@@ -48,7 +52,7 @@ public class TCP implements ComunicationProtocol {
     }
 
     @Override
-    public boolean send(int port, String message) {
+    public boolean send(int port, String message, String expectedResponseMessage) {
         try (Socket socket = new Socket()) {
             socket.connect(new java.net.InetSocketAddress("localhost", port), 1000);
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
@@ -58,7 +62,7 @@ public class TCP implements ComunicationProtocol {
             socket.setSoTimeout(1000);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String response = in.readLine();
-            return response.equals("Process done successfully");
+            return response.equals(expectedResponseMessage);
 
         } catch (java.net.SocketTimeoutException e) {
             System.out.println("Response timed out.");

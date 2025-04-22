@@ -24,14 +24,7 @@ public class TCP implements ComunicationProtocol {
                     while (true) {
                         Socket connection = socket.accept();
                         BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                        StringBuilder messageBuilder = new StringBuilder();
-                        String line;
-                        while ((line = input.readLine()) != null) {
-                            messageBuilder.append(line).append("\n");
-                            if (line.isEmpty())
-                                break;
-                        }
-                        String message = messageBuilder.toString().trim();
+                        String message = buildMessage(input);
                         boolean processed = processPayload.apply(message);
 
                         // Send a response back to the client
@@ -41,18 +34,12 @@ public class TCP implements ComunicationProtocol {
                         } else {
                             output.println(errorResponseMessage);
                         }
-                        output.println();
+                        output.println("--END--");
                         output.flush();
                     }
 
                 } catch (IOException e) {
                     e.printStackTrace();
-                } finally {
-                    try {
-                        socket.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
                 }
 
             });
@@ -67,21 +54,13 @@ public class TCP implements ComunicationProtocol {
             socket.connect(new java.net.InetSocketAddress("localhost", port), 1000);
             PrintWriter out = new PrintWriter(socket.getOutputStream());
             out.println(message);
-            out.println();
+            out.println("--END--");
             out.flush();
 
             // Wait for a response
             socket.setSoTimeout(1000);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            StringBuilder responseBuilder = new StringBuilder();
-            String line;
-            while ((line = in.readLine()) != null) {
-                responseBuilder.append(line).append("\n");
-                if (line.isEmpty())
-                    break;
-            }
-            String response = responseBuilder.toString().trim();
-            response = MessageUtils.extract(response, getName());
+            BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String response = MessageUtils.extract(buildMessage(input), getName());
             return response.equals(expectedResponseMessage);
 
         } catch (java.net.SocketTimeoutException e) {
@@ -96,4 +75,21 @@ public class TCP implements ComunicationProtocol {
     public String getName() {
         return "TCP";
     }
+
+    private String buildMessage(BufferedReader input) {
+        StringBuilder messageBuilder = new StringBuilder();
+        String line;
+        try {
+            while ((line = input.readLine()) != null) {
+                if (line.equals("--END--")) {
+                    return messageBuilder.toString().trim();
+                }
+                messageBuilder.append(line).append("\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 }

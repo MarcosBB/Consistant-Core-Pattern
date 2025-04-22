@@ -15,11 +15,12 @@ public class HTTP implements ComunicationProtocol {
             Function<String, Boolean> processPayload,
             String successResponseMessage,
             String errorResponseMessage) {
+        System.out.println("Listening on port " + port);
         protocol.listen(
                 port,
                 processPayload,
                 formatSuccessResponse(successResponseMessage),
-                formatErrorReponse(errorResponseMessage));
+                formatErrorResponse(errorResponseMessage));
 
     }
 
@@ -46,7 +47,7 @@ public class HTTP implements ComunicationProtocol {
                 message;
     }
 
-    private String formatErrorReponse(String message) {
+    private String formatErrorResponse(String message) {
         return "HTTP/1.1 500 Internal Server Error\r\n" +
                 "Content-Type: text/plain\r\n" +
                 "Content-Length: " + message.length() + "\r\n" +
@@ -55,10 +56,9 @@ public class HTTP implements ComunicationProtocol {
     }
 
     private String formatSuccessResponse(String message) {
-        return "HTTP/1.1 200 OK\r\n" +
-                "Content-Type: text/plain\r\n" +
-                "Content-Length: " + message.length() + "\r\n" +
-                "\r\n" +
+        return "HTTP/1.1 200 OK\n" +
+                "Content-Type: text/plain\n" +
+                "Content-Length: " + message.length() + "\n\n" +
                 message;
     }
 

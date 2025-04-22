@@ -49,11 +49,13 @@ public class TCP implements ComunicationProtocol {
 
     @Override
     public boolean send(int port, String message) {
-        try (Socket socket = new Socket("localhost", port)) {
+        try (Socket socket = new Socket()) {
+            socket.connect(new java.net.InetSocketAddress("localhost", port), 1000);
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             out.println(message);
 
             // Wait for a response
+            socket.setSoTimeout(1000);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             String response = in.readLine();
             return response.equals("Process done successfully");

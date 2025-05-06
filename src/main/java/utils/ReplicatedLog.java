@@ -62,4 +62,29 @@ public class ReplicatedLog {
         }
         return strLog;
     }
+
+    public void importLog(String logText) {
+        if (logText == null || logText.isEmpty()) {
+            return;
+        }
+
+        String[] lines = logText.split("\n");
+        for (String line : lines) {
+            if (line.trim().isEmpty())
+                continue;
+
+            Map<String, String> entry = new HashMap<>();
+
+            String[] parts = line.split(", ");
+            for (String part : parts) {
+                String[] keyValue = part.split(": ", 2);
+                if (keyValue.length == 2) {
+                    entry.put(keyValue[0].toLowerCase(), keyValue[1]);
+                }
+            }
+
+            entries.add(entry);
+        }
+    }
+
 }

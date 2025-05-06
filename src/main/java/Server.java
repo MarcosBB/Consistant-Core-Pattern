@@ -32,15 +32,11 @@ public class Server {
                 return true;
             }
 
-            // if (message.startsWith("SYNC_REQUEST:")) {
-            // String[] parts = message.replace("SYNC_REQUEST:", "").split(":");
-            // Map<String, String> entry = new HashMap<>();
-            // entry.put("id", parts[0]);
-            // entry.put("state", parts[1]);
-            // entry.put("message", parts[2]);
-            // replicatedLog.getEntries().add(entry);
-            // return true;
-            // }
+            if (message.startsWith("SYNC_REQUEST:")) {
+                String allLog = message.replace("SYNC_REQUEST:", "");
+                replicatedLog.importLog(allLog);
+                return true;
+            }
 
             String[] parts = message.split(":", 3);
             Map<String, String> entry = new HashMap<>();
@@ -62,7 +58,7 @@ public class Server {
 
         heartBeat.startSendingHeartBeats(port, gatewayPort);
 
-        // protocol.send(gatewayPort, "SYNC_REQUEST:" + port);
+        protocol.send(3500, "SYNC_REQUEST:" + port, expectedResponseMessage);
 
         while (true) {
             System.out.println("Replicated Log:");

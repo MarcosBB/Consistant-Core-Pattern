@@ -27,13 +27,12 @@ public class Gateway {
 
         protocol.listen(3500, message -> {
             message = MessageUtils.extract(message, args[0]);
-            // if (message.startsWith("SYNC_REQUEST")) {
-            // String[] parts = message.split(":");
-            // int serverPort = Integer.parseInt(parts[1]);
-            // requestsLog.add("SYNC_REQUEST: " + serverPort);
-            // // protocol.send(serverPort, "SYNC_REQUEST:" + replicatedLog.getLog(0));
-            // return true;
-            // }
+            if (message.startsWith("SYNC_REQUEST")) {
+                String[] parts = message.split(":");
+                int serverPort = Integer.parseInt(parts[1]);
+                requestsLog.add("SYNC_REQUEST: " + serverPort);
+                return protocol.send(serverPort, "SYNC_REQUEST:" + replicatedLog.getLog(0), expectedResponseMessage);
+            }
 
             String id = UUID.randomUUID().toString();
             replicatedLog.addEntry(id, message);

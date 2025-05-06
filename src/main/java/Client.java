@@ -11,6 +11,7 @@ public class Client {
         ComunicationProtocol protocol = ProtocolUtils.setProtocol(args[0]);
         int port = Integer.parseInt(args[1]);
 
-        protocol.send(port, "Hello, Server!", "Process done successfully");
+        protocol.send(port, "!!!IMPORTANT!!!Hello, Server!", "Process done successfully");
+        // protocol.send(port, "Hello, Server!", "Process done successfully");
     }
 }

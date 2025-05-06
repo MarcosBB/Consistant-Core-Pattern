@@ -47,6 +47,15 @@ public class Server {
             entry.put("id", parts[0]);
             entry.put("state", parts[1]);
             entry.put("message", parts[2]);
+
+            if (entry.get("message").startsWith("!!!IMPORTANT!!!")) {
+                String messageToSend = port + " : " + entry.get("message").replace("!!!IMPORTANT!!!", "");
+                boolean status = protocol.send(4000, messageToSend, expectedResponseMessage);
+                if (status == false) {
+                    return false;
+                }
+            }
+
             replicatedLog.getEntries().add(entry);
             return true;
         }, expectedResponseMessage, errorResponseMessage);
